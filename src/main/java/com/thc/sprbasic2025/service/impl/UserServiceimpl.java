@@ -6,19 +6,41 @@ import com.thc.sprbasic2025.dto.DefaultDto;
 import com.thc.sprbasic2025.mapper.UserMapper;
 import com.thc.sprbasic2025.repository.UserRepository;
 import com.thc.sprbasic2025.service.UserService;
+import com.thc.sprbasic2025.util.TokenFactory;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
 
+@RequiredArgsConstructor
 @Service
 public class UserServiceimpl implements UserService {
 
     final UserRepository userRepository;
     final UserMapper userMapper;
-    public UserServiceimpl(UserRepository userRepository, UserMapper userMapper){
-        this.userRepository = userRepository;
-        this.userMapper = userMapper;
-    }
+    final BCryptPasswordEncoder bCryptPasswordEncoder;
+    /*final TokenFactory tokenFactory;*/
+
+   /*
+   @Override
+   public UserDto.LoginResDto login(UserDto.LoginReqDto param) {
+        User user = userRepository.findByUsernameAndPassword(param.getUsername(), param.getPassword());
+        if(user == null){
+            // throw new RuntimeException("id or password error!!");
+            //로그인 실패
+            return UserDto.LoginResDto.builder().refreshToken(null).build();
+        } else {
+            //로그인 성공
+            String refreshToken = tokenFactory.generateRefreshKey(user.getId());
+            if(refreshToken == null){
+                throw new RuntimeException("refresh token is null");
+            }
+            return UserDto.LoginResDto.builder().refreshToken(refreshToken).build();
+        }
+    }*/
+
+/*
 
     @Override
     public DefaultDto.CreateResDto login(UserDto.LoginReqDto param) {
@@ -32,6 +54,7 @@ public class UserServiceimpl implements UserService {
             return DefaultDto.CreateResDto.builder().id(user.getId()).build();
         }
     }
+*/
 
     /**/
 
@@ -41,7 +64,11 @@ public class UserServiceimpl implements UserService {
         if(user != null){
             throw new RuntimeException("already exist");
         }
-        return userRepository.save(param.toEntity()).toCreateResDto();
+        //비밀번호 암호화!
+        param.setPassword(bCryptPasswordEncoder.encode(param.getPassword()));
+        user = userRepository.save(param.toEntity());
+
+        return user.toCreateResDto();
     }
 
     @Override
